@@ -49,8 +49,9 @@ svg.ch{width:100%;height:180px;display:block}svg.ch text{font:10px Arial;fill:va
 .tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;background:var(--okbg);color:var(--ok);white-space:nowrap}.tag.WASPADA{background:var(--warnbg);color:var(--warn)}.tag.BAHAYA{background:var(--badbg);color:var(--bad)}
 .tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;font-weight:500;color:var(--mut);padding:7px 8px;background:var(--bg)}td{padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
 .sc{border-radius:10px;padding:11px 12px;margin-bottom:8px;font-size:12px;background:var(--okbg);color:var(--ok)}.sc.w{background:var(--warnbg);color:var(--warn)}.sc.b{background:var(--badbg);color:var(--bad)}.sc small{display:block;color:var(--mut);margin-top:2px}
+.ctl{display:grid;grid-template-columns:auto 1fr 1fr;gap:22px;align-items:center}.ctl label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:7px}.ctl label b{color:var(--ink)}.ctl input{accent-color:var(--acc);width:100%}button.pill.mute{border-color:var(--ok);color:var(--ok)}button.pill.muted{border-color:var(--bad);color:var(--bad);background:var(--badbg)}
 .foot{font-size:11px;color:var(--mut);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:6px}
-@media(max-width:1000px){.g4{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.banner{grid-template-columns:1fr 1fr}.banner>div:first-child{grid-column:1/-1}}
+@media(max-width:1000px){.ctl{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.banner{grid-template-columns:1fr 1fr}.banner>div:first-child{grid-column:1/-1}}
 @media(max-width:760px){.app{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;align-items:center;padding:12px 14px;border-right:0;border-bottom:1px solid var(--sideline);overflow-x:auto}.lbl,.sidebox,.nav:not(.on){display:none}.brand small{display:none}.main{padding:16px}h1{font-size:21px}.banner{grid-template-columns:1fr;padding:16px}.banner h2{font-size:28px}}
 @media(max-width:420px){.g4{gap:10px}.val{font-size:22px}}
 </style>
@@ -67,15 +68,19 @@ svg.ch{width:100%;height:180px;display:block}svg.ch text{font:10px Arial;fill:va
 <div class="banner" id="banner">
 <div><div class="badge">STATUS UDARA SAAT INI</div><h2 id="stText">AMAN</h2><p id="stDesc">-</p><p style="font-size:11px;margin-top:6px" id="upd">Menunggu data…</p></div>
 <div><div class="badge">KONDISI RUANGAN ANDA</div><div class="scale" id="scale"><i></i><i></i><i></i></div><div class="scl"><span>AMAN</span><span>WASPADA</span><span>TIDAK SEHAT</span></div><p style="font-size:11px;margin-top:10px">Berdasarkan konsentrasi debu</p></div>
-<div class="dust"><small>DEBU</small><b id="dBig">--</b><small>µg/m³ · Aman ≤ 15</small></div></div>
+<div class="dust"><small>DEBU</small><b id="dBig">--</b><small>µg/m³ · Aman ≤ <span id="dA">15</span></small></div></div>
 
 <div class="grid g4">
 <div class="card"><label>Konsentrasi debu</label><div class="val"><span id="vDebu">--</span> <small>µg/m³</small></div><div class="note">Sensor debu · V2</div></div>
 <div class="card"><label>Suhu ruangan</label><div class="val"><span id="vSuhu">--</span> <small>°C</small></div><div class="note">DHT22 · V0 · tidak menentukan status</div></div>
 <div class="card"><label>Kelembapan</label><div class="val"><span id="vRH">--</span> <small>% RH</small></div><div class="note">DHT22 · V1 · tidak menentukan status</div></div>
-<div class="card"><label>Kipas (relay)</label><div class="val" id="vFan">--</div><div class="note">V3 · ON jika debu ≥ 26</div></div>
+<div class="card"><label>Kipas (relay)</label><div class="val" id="vFan">--</div><div class="note">V3 · ON jika debu ≥ <span id="fOn">26</span></div></div>
 </div>
 
+<div class="card" style="margin-bottom:14px"><div class="ph"><h3>Kontrol &amp; ambang batas</h3><span class="note" id="ctlMsg" style="margin:0"></span></div>
+<div class="ctl"><div><button id="muteBtn" class="pill mute" type="button">Buzzer aktif · klik untuk matikan</button></div>
+<label>Batas AMAN: debu ≤ <b><span id="tAman">15</span> µg/m³</b><input type="range" id="sAman" min="5" max="50" step="1" value="15"></label>
+<label>Batas WASPADA: debu ≤ <b><span id="tWas">25</span> µg/m³</b> · di atasnya TIDAK SEHAT<input type="range" id="sWas" min="10" max="100" step="1" value="25"></label></div></div>
 <div class="grid g2">
 <div class="card"><div class="ph"><div><h3>Tren kualitas udara</h3><div class="sub" id="chSub">Konsentrasi debu · sesi ini</div></div>
 <div class="tabs" id="tabs"><button class="on" data-k="debu" type="button">Debu</button><button data-k="suhu" type="button">Suhu</button><button data-k="rh" type="button">Kelembapan</button></div></div>
@@ -89,10 +94,10 @@ svg.ch{width:100%;height:180px;display:block}svg.ch text{font:10px Arial;fill:va
 <div class="grid g2">
 <div class="card"><div class="ph"><h3>Riwayat pembacaan</h3></div><div class="tw"><table><thead><tr><th>Waktu (WIB)</th><th>Debu (µg/m³)</th><th>Suhu (°C)</th><th>RH (%)</th><th>Kipas</th><th>Status udara</th></tr></thead><tbody id="hist"></tbody></table></div></div>
 <div class="card"><h3 style="margin-bottom:10px">Panduan status udara</h3>
-<div class="sc"><b>● AMAN</b> · Debu ≤ 15 µg/m³<small>Buzzer diam</small></div>
-<div class="sc w"><b>● WASPADA</b> · Debu &gt; 15 sampai 25<small>Buzzer 1× beep / 30 dtk</small></div>
-<div class="sc b"><b>● TIDAK SEHAT</b> · Debu &gt; 25<small>Buzzer 3× beep / 30 dtk</small></div>
-<div class="note">Kipas ON: debu ≥ 26 (3 pembacaan). OFF: debu &lt; 16 (5 pembacaan).</div></div>
+<div class="sc"><b>● AMAN</b> · Debu ≤ <span id="gA">15</span> µg/m³<small>Buzzer diam</small></div>
+<div class="sc w"><b>● WASPADA</b> · Debu &gt; <span id="gW1">15</span> sampai <span id="gW2">25</span><small>Buzzer 1× beep / 30 dtk</small></div>
+<div class="sc b"><b>● TIDAK SEHAT</b> · Debu &gt; <span id="gB">25</span><small>Buzzer 3× beep / 30 dtk</small></div>
+<div class="note">Kipas ON: debu ≥ <span id="gFon">26</span> (3 pembacaan). OFF: debu &lt; <span id="gFoff">16</span> (5 pembacaan).</div></div>
 </div>
 <div class="foot"><span id="src">Data contoh untuk pratinjau.</span><span>Debu adalah estimasi sensor optik, bukan indeks AQI resmi.</span></div>
 </main></div>
@@ -106,7 +111,7 @@ var CONFIG={
 };
 /* ======================================== */
 var T={aman:15,waspada:25},$=function(i){return document.getElementById(i)};
-var S={d:0,s:NaN,h:NaN,fan:false,online:false,ok:false,tab:'debu',ser:{debu:[],suhu:[],rh:[]},hist:[]};
+var S={mute:false,hold:0,d:0,s:NaN,h:NaN,fan:false,online:false,ok:false,tab:'debu',ser:{debu:[],suhu:[],rh:[]},hist:[]};
 var DEMO=!CONFIG.TOKEN||CONFIG.TOKEN.indexOf("ISI_")===0;
 function pad(n){return String(n).padStart(2,'0')}
 function ts(d){return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
@@ -122,7 +127,7 @@ function render(){
   $('dBig').textContent=S.ok?S.d.toFixed(0):'--';$('vDebu').textContent=S.ok?S.d.toFixed(0):'--';
   $('vSuhu').textContent=num(S.s,1);$('vRH').textContent=num(S.h,0);
   $('vFan').textContent=S.ok?(S.fan?'MENYALA':'MATI'):'--';
-  $('bz').textContent=s==='AMAN'?'Diam':s==='WASPADA'?'1× beep / 30 dtk':'3× beep / 30 dtk';
+  $('bz').textContent=S.mute?'Dimatikan (mute)':s==='AMAN'?'Diam':s==='WASPADA'?'1× beep / 30 dtk':'3× beep / 30 dtk';
   var on=S.online;$('devPill').textContent=on?'• Online':'• Offline';$('devPill').className='pill '+(on?'ok':'bad');
   $('sdot').className='dot'+(on?'':' off');$('sdev').textContent=on?'Perangkat terhubung':'Perangkat offline';
   $('mode').textContent=DEMO?'Mode demo':'Data langsung';$('mode').className='pill'+(DEMO?'':' ok');
@@ -155,23 +160,46 @@ function take(d,s,h,f,online){
 function api(path){return fetch('https://'+CONFIG.SERVER+'/external/api/'+path).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})}
 function poll(){
   var t=encodeURIComponent(CONFIG.TOKEN);
-  Promise.all([api('get?token='+t+'&v0&v1&v2&v3'),api('isHardwareConnected?token='+t)]).then(function(r){
+  Promise.all([api('get?token='+t+'&v0&v1&v2&v3&v5&v6&v7'),api('isHardwareConnected?token='+t)]).then(function(r){
     var d=r[0],g=function(k){var v=d[k]!==undefined?d[k]:d[k.toUpperCase()];return v===undefined||v===null?NaN:parseFloat(v)};
+    if(!drag&&Date.now()>S.hold){var a=g('v6'),w=g('v7'),m=g('v5');if(!isNaN(a)&&!isNaN(w)&&w>a){T.aman=a;T.waspada=w}if(!isNaN(m))S.mute=m===1;setCtl()}
     take(g('v2')||0,g('v0'),g('v1'),g('v3')===1,r[1]===true);
   }).catch(function(e){S.online=false;$('upd').textContent='Gagal mengambil data dari Blynk ('+e.message+')';render()});
 }
 /* ===== Demo ===== */
 var dm={t:10,s:27.5,h:55,f:0,fan:false};
 function demo(){dm.t=Math.max(2,Math.min(45,dm.t+(Math.random()-.48)*5));dm.f=.2*dm.t+.8*dm.f;
-  if(!dm.fan&&dm.f>=26)dm.fan=true;if(dm.fan&&dm.f<16)dm.fan=false;
+  if(!dm.fan&&dm.f>=T.waspada+1)dm.fan=true;if(dm.fan&&dm.f<T.aman+1)dm.fan=false;
   dm.s+=(Math.random()-.5)*.3;dm.h+=(Math.random()-.5)*1.2;take(dm.f,dm.s,dm.h,dm.fan,true)}
+/* ===== Kontrol ===== */
+var drag=false;
+function sendPin(pin,val){return fetch('https://'+CONFIG.SERVER+'/external/api/update?token='+encodeURIComponent(CONFIG.TOKEN)+'&'+pin+'='+val).then(function(r){if(!r.ok)throw new Error(r.status)})}
+function msg(t){$('ctlMsg').textContent=t;setTimeout(function(){$('ctlMsg').textContent=''},3500)}
+function setCtl(){
+  $('sAman').value=T.aman;$('sWas').value=T.waspada;$('tAman').textContent=T.aman;$('tWas').textContent=T.waspada;
+  $('gA').textContent=T.aman;$('gW1').textContent=T.aman;$('gW2').textContent=T.waspada;$('gB').textContent=T.waspada;
+  $('dA').textContent=T.aman;$('gFon').textContent=T.waspada+1;$('fOn').textContent=T.waspada+1;$('gFoff').textContent=T.aman+1;
+  var b=$('muteBtn');b.className='pill '+(S.mute?'muted':'mute');b.textContent=S.mute?'Buzzer DIMATIKAN · klik untuk aktifkan':'Buzzer aktif · klik untuk matikan';
+}
+function preview(){var a=+$('sAman').value,w=+$('sWas').value;if(w<=a){w=a+1;$('sWas').value=w}$('tAman').textContent=a;$('tWas').textContent=w}
+function commit(){
+  var a=+$('sAman').value,w=+$('sWas').value;if(w<=a)w=a+1;
+  T.aman=a;T.waspada=w;S.hold=Date.now()+6000;drag=false;setCtl();render();
+  if(DEMO){msg('Disimpan (demo)');return}
+  sendPin('v6',a).then(function(){return sendPin('v7',w)}).then(function(){msg('Ambang batas dikirim ke perangkat')}).catch(function(){msg('Gagal mengirim ke Blynk')});
+}
+['sAman','sWas'].forEach(function(id){var e=$(id);e.addEventListener('input',function(){drag=true;preview()});e.addEventListener('change',commit)});
+$('muteBtn').addEventListener('click',function(){
+  S.mute=!S.mute;S.hold=Date.now()+6000;setCtl();render();
+  if(DEMO)return;sendPin('v5',S.mute?1:0).then(function(){msg(S.mute?'Buzzer dimatikan':'Buzzer diaktifkan')}).catch(function(){msg('Gagal mengirim ke Blynk')});
+});
 /* ===== UI ===== */
 $('tabs').addEventListener('click',function(e){var k=e.target.getAttribute('data-k');if(!k)return;S.tab=k;[].forEach.call(this.children,function(b){b.className=b.getAttribute('data-k')===k?'on':''});drawChart()});
 $('skin').addEventListener('click',function(){var b=document.body;b.classList.toggle('skin2');try{localStorage.setItem('skin',b.classList.contains('skin2')?'2':'1')}catch(e){}});
 try{if(localStorage.getItem('skin')==='2')document.body.classList.add('skin2')}catch(e){}
 setInterval(function(){$('clock').textContent=ts(new Date())+' WIB'},1000);
 if(DEMO){for(var i=0;i<25;i++)demo();setInterval(demo,1000)}else{poll();setInterval(poll,CONFIG.INTERVAL)}
-render();
+setCtl();render();
 </script>
 </body>
 </html>
