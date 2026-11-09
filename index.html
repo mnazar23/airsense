@@ -78,7 +78,7 @@ svg.ch{width:100%;height:180px;display:block}svg.ch text{font:10px Arial;fill:va
 </div>
 
 <div class="card" style="margin-bottom:14px"><div class="ph"><h3>Kontrol &amp; ambang batas</h3><span class="note" id="ctlMsg" style="margin:0"></span></div>
-<div class="ctl"><div><button id="muteBtn" class="pill mute" type="button">Buzzer aktif · klik untuk matikan</button></div>
+<div class="ctl"><div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start"><button id="muteBtn" class="pill mute" type="button">Buzzer aktif · klik untuk matikan</button><button id="fanBtn" class="pill mute" type="button">Kipas otomatis · klik untuk matikan</button></div>
 <label>Batas AMAN: debu ≤ <b><span id="tAman">15</span> µg/m³</b><input type="range" id="sAman" min="5" max="50" step="1" value="15"></label>
 <label>Batas WASPADA: debu ≤ <b><span id="tWas">25</span> µg/m³</b> · di atasnya TIDAK SEHAT<input type="range" id="sWas" min="10" max="100" step="1" value="25"></label></div></div>
 <div class="grid g2">
@@ -111,7 +111,7 @@ var CONFIG={
 };
 /* ======================================== */
 var T={aman:15,waspada:25},$=function(i){return document.getElementById(i)};
-var S={mute:false,hold:0,d:0,s:NaN,h:NaN,fan:false,online:false,ok:false,tab:'debu',ser:{debu:[],suhu:[],rh:[]},hist:[]};
+var S={fanOff:false,mute:false,hold:0,d:0,s:NaN,h:NaN,fan:false,online:false,ok:false,tab:'debu',ser:{debu:[],suhu:[],rh:[]},hist:[]};
 var DEMO=!CONFIG.TOKEN||CONFIG.TOKEN.indexOf("ISI_")===0;
 function pad(n){return String(n).padStart(2,'0')}
 function ts(d){return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
@@ -126,7 +126,7 @@ function render(){
   var k=$('scale').children,a=s==='AMAN'?0:s==='WASPADA'?1:2;for(var i=0;i<3;i++)k[i].className=i===a?'cur':'';
   $('dBig').textContent=S.ok?S.d.toFixed(0):'--';$('vDebu').textContent=S.ok?S.d.toFixed(0):'--';
   $('vSuhu').textContent=num(S.s,1);$('vRH').textContent=num(S.h,0);
-  $('vFan').textContent=S.ok?(S.fan?'MENYALA':'MATI'):'--';
+  $('vFan').textContent=S.ok?(S.fan?'MENYALA':(S.fanOff?'MATI (manual)':'MATI')):'--';
   $('bz').textContent=S.mute?'Dimatikan (mute)':s==='AMAN'?'Diam':s==='WASPADA'?'1× beep / 30 dtk':'3× beep / 30 dtk';
   var on=S.online;$('devPill').textContent=on?'• Online':'• Offline';$('devPill').className='pill '+(on?'ok':'bad');
   $('sdot').className='dot'+(on?'':' off');$('sdev').textContent=on?'Perangkat terhubung':'Perangkat offline';
@@ -160,16 +160,16 @@ function take(d,s,h,f,online){
 function api(path){return fetch('https://'+CONFIG.SERVER+'/external/api/'+path).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})}
 function poll(){
   var t=encodeURIComponent(CONFIG.TOKEN);
-  Promise.all([api('get?token='+t+'&v0&v1&v2&v3&v5&v6&v7'),api('isHardwareConnected?token='+t)]).then(function(r){
+  Promise.all([api('get?token='+t+'&v0&v1&v2&v3&v5&v6&v7&v8'),api('isHardwareConnected?token='+t)]).then(function(r){
     var d=r[0],g=function(k){var v=d[k]!==undefined?d[k]:d[k.toUpperCase()];return v===undefined||v===null?NaN:parseFloat(v)};
-    if(!drag&&Date.now()>S.hold){var a=g('v6'),w=g('v7'),m=g('v5');if(!isNaN(a)&&!isNaN(w)&&w>a){T.aman=a;T.waspada=w}if(!isNaN(m))S.mute=m===1;setCtl()}
+    if(!drag&&Date.now()>S.hold){var a=g('v6'),w=g('v7'),m=g('v5'),f8=g('v8');if(!isNaN(a)&&!isNaN(w)&&w>a){T.aman=a;T.waspada=w}if(!isNaN(m))S.mute=m===1;if(!isNaN(f8))S.fanOff=f8===1;setCtl()}
     take(g('v2')||0,g('v0'),g('v1'),g('v3')===1,r[1]===true);
   }).catch(function(e){S.online=false;$('upd').textContent='Gagal mengambil data dari Blynk ('+e.message+')';render()});
 }
 /* ===== Demo ===== */
 var dm={t:10,s:27.5,h:55,f:0,fan:false};
 function demo(){dm.t=Math.max(2,Math.min(45,dm.t+(Math.random()-.48)*5));dm.f=.2*dm.t+.8*dm.f;
-  if(!dm.fan&&dm.f>=T.waspada+1)dm.fan=true;if(dm.fan&&dm.f<T.aman+1)dm.fan=false;
+  if(S.fanOff){dm.fan=false}else{if(!dm.fan&&dm.f>=T.waspada+1)dm.fan=true;if(dm.fan&&dm.f<T.aman+1)dm.fan=false}
   dm.s+=(Math.random()-.5)*.3;dm.h+=(Math.random()-.5)*1.2;take(dm.f,dm.s,dm.h,dm.fan,true)}
 /* ===== Kontrol ===== */
 var drag=false;
@@ -180,6 +180,7 @@ function setCtl(){
   $('gA').textContent=T.aman;$('gW1').textContent=T.aman;$('gW2').textContent=T.waspada;$('gB').textContent=T.waspada;
   $('dA').textContent=T.aman;$('gFon').textContent=T.waspada+1;$('fOn').textContent=T.waspada+1;$('gFoff').textContent=T.aman+1;
   var b=$('muteBtn');b.className='pill '+(S.mute?'muted':'mute');b.textContent=S.mute?'Buzzer DIMATIKAN · klik untuk aktifkan':'Buzzer aktif · klik untuk matikan';
+  var f=$('fanBtn');f.className='pill '+(S.fanOff?'muted':'mute');f.textContent=S.fanOff?'Kipas DIMATIKAN manual · klik untuk otomatis':'Kipas otomatis · klik untuk matikan';
 }
 function preview(){var a=+$('sAman').value,w=+$('sWas').value;if(w<=a){w=a+1;$('sWas').value=w}$('tAman').textContent=a;$('tWas').textContent=w}
 function commit(){
@@ -192,6 +193,10 @@ function commit(){
 $('muteBtn').addEventListener('click',function(){
   S.mute=!S.mute;S.hold=Date.now()+6000;setCtl();render();
   if(DEMO)return;sendPin('v5',S.mute?1:0).then(function(){msg(S.mute?'Buzzer dimatikan':'Buzzer diaktifkan')}).catch(function(){msg('Gagal mengirim ke Blynk')});
+});
+$('fanBtn').addEventListener('click',function(){
+  S.fanOff=!S.fanOff;S.hold=Date.now()+6000;setCtl();render();
+  if(DEMO)return;sendPin('v8',S.fanOff?1:0).then(function(){msg(S.fanOff?'Kipas dimatikan manual':'Kipas kembali otomatis')}).catch(function(){msg('Gagal mengirim ke Blynk')});
 });
 /* ===== UI ===== */
 $('tabs').addEventListener('click',function(e){var k=e.target.getAttribute('data-k');if(!k)return;S.tab=k;[].forEach.call(this.children,function(b){b.className=b.getAttribute('data-k')===k?'on':''});drawChart()});
