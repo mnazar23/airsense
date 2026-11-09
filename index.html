@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AirSense — Kualitas udara ruangan</title>
+<style>
+:root{--bg:#f4f7f6;--card:#fff;--ink:#233f3e;--mut:#889793;--line:#e8eeec;--acc:#139b81;
+--ok:#2f8a63;--okbg:#e3f1e2;--warn:#b8872a;--warnbg:#f7f0dc;--bad:#b8574f;--badbg:#f6e4e1;
+--sidebg:#fff;--sideink:#7c8d89;--sideon:#e7f4ef;--sideonink:#14947e;--sideline:#e5ecea;--sidebox:#f2f7f5;
+--banbg:#103f36;--banink:#fff;--bansub:#b9d0ca;--banh:#c5ecda;--dustbg:#fff;--dustink:#244b3f;
+font:14px/1.45 Inter,"Segoe UI",Arial,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body.skin2{--bg:#f5f7f3;--sidebg:#10372f;--sideink:#a5b8af;--sideon:#dcedca;--sideonink:#28574b;--sideline:#315449;--sidebox:#19473c;
+--banbg:#e1efdc;--banink:#21483c;--bansub:#597569;--banh:#47846c;--dustbg:#f4f8ef}
+body.skin2 .side .brand{color:#f0f7f3}body.skin2 .sidebox{color:#c1d3c9}body.skin2 .sidebox b{color:#eff6ee}
+body.skin2 .banner.WASPADA{background:#f6f0dc;--banink:#6d5420;--bansub:#8a7440;--banh:#9a7a2c}
+body.skin2 .banner.BAHAYA{background:#f4e4e1;--banink:#7a3a34;--bansub:#97625c;--banh:#a35e56}
+.banner.WASPADA{background:#5a4415}.banner.BAHAYA{background:#5a2320}
+@media(prefers-color-scheme:dark){body:not(.skin2){--bg:#101716;--card:#192321;--ink:#e3eeea;--mut:#8da29c;--line:#2a3835;--sidebg:#0d1a17;--sideink:#9fb5ad;--sideline:#24332f;--sidebox:#16241f;--sideon:#1f3a30;--sideonink:#7fd4b6;--okbg:#1f3a2c;--warnbg:#3a3220;--badbg:#3d2623;--dustbg:#192321;--dustink:#e3eeea;--ok:#6fc08f;--warn:#e2b45a;--bad:#e5877e;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}
+.app{display:grid;grid-template-columns:200px 1fr;min-height:100vh}
+.side{background:var(--sidebg);border-right:1px solid var(--sideline);padding:22px 12px;display:flex;flex-direction:column;gap:3px;position:sticky;top:0;height:100vh}
+.brand{font-size:22px;font-weight:800;letter-spacing:-1px;padding:0 10px;color:var(--ink)}.brand small{display:block;font-size:8px;letter-spacing:1.6px;color:var(--mut);font-weight:600;margin-top:2px}
+.lbl{font-size:9px;letter-spacing:1.2px;font-weight:700;color:var(--mut);margin:26px 10px 8px}
+.nav{padding:9px 10px;border-radius:8px;color:var(--sideink);font-size:13px}.nav.on{background:var(--sideon);color:var(--sideonink);font-weight:700}
+.sidebox{margin-top:auto;background:var(--sidebox);border-radius:10px;padding:12px;font-size:11px;line-height:1.6;color:var(--sideink)}.sidebox b{display:block;color:var(--ink);font-size:12px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#19a887;margin-right:6px}.dot.off{background:#c25a52}
+.main{padding:22px 26px;min-width:0;max-width:1240px;width:100%}
+.head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:25px;margin:0;letter-spacing:-.5px}.sub{margin:3px 0 0;font-size:12px;color:var(--mut)}.eyebrow{font-size:10px;letter-spacing:.8px;color:var(--acc);font-weight:700}
+.pills{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}.pill{border-radius:20px;padding:7px 13px;font-size:12px;background:var(--card);border:1px solid var(--line);color:var(--mut)}
+.pill.ok{color:var(--ok)}.pill.bad{color:var(--bad)}
+button{font:inherit;cursor:pointer;color:var(--ink)}button.pill:hover{border-color:var(--acc)}
+.banner{background:var(--banbg);color:var(--banink);border-radius:14px;padding:20px 22px;display:grid;grid-template-columns:1.4fr 1fr 150px;gap:22px;align-items:center;margin-bottom:14px;transition:background .4s}
+.badge{font-size:10px;letter-spacing:1px;font-weight:700;color:var(--banh)}
+.banner h2{font-size:34px;margin:4px 0 6px;line-height:1.05}.banner p{margin:0;font-size:13px;color:var(--bansub)}
+.scale{display:flex;gap:4px;margin:8px 0 5px}.scale i{flex:1;height:7px;border-radius:9px;opacity:.35}.scale i:nth-child(1){background:#4a8b68}.scale i:nth-child(2){background:#dfbd49}.scale i:nth-child(3){background:#bf5d59}.scale i.cur{opacity:1}
+.scl{display:flex;justify-content:space-between;font-size:9px;color:var(--bansub)}
+.dust{background:var(--dustbg);color:var(--dustink);border-radius:12px;padding:12px 14px}.dust small{font-size:10px;opacity:.7}.dust b{font-size:34px;display:block;line-height:1.15}
+.grid{display:grid;gap:14px;margin-bottom:14px}.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:1.9fr 1fr}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.card label{font-size:12px;color:var(--mut)}.val{font-size:28px;font-weight:700;letter-spacing:-1px;margin-top:2px}.val small{font-size:12px;font-weight:500;color:var(--mut);letter-spacing:0}
+.note{font-size:11px;color:var(--mut);margin-top:6px}
+.ph{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap}h3{font-size:14px;margin:0}
+.tabs{display:flex;background:var(--bg);border-radius:7px;padding:3px}.tabs button{border:0;background:none;font-size:11px;padding:5px 12px;border-radius:5px;color:var(--mut)}.tabs button.on{background:var(--card);color:var(--acc);font-weight:700}
+svg.ch{width:100%;height:180px;display:block}svg.ch text{font:10px Arial;fill:var(--mut)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}.row b{color:var(--ink);font-weight:600;text-align:right}
+.tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;background:var(--okbg);color:var(--ok);white-space:nowrap}.tag.WASPADA{background:var(--warnbg);color:var(--warn)}.tag.BAHAYA{background:var(--badbg);color:var(--bad)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;font-weight:500;color:var(--mut);padding:7px 8px;background:var(--bg)}td{padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.sc{border-radius:10px;padding:11px 12px;margin-bottom:8px;font-size:12px;background:var(--okbg);color:var(--ok)}.sc.w{background:var(--warnbg);color:var(--warn)}.sc.b{background:var(--badbg);color:var(--bad)}.sc small{display:block;color:var(--mut);margin-top:2px}
+.foot{font-size:11px;color:var(--mut);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:6px}
+@media(max-width:1000px){.g4{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.banner{grid-template-columns:1fr 1fr}.banner>div:first-child{grid-column:1/-1}}
+@media(max-width:760px){.app{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;align-items:center;padding:12px 14px;border-right:0;border-bottom:1px solid var(--sideline);overflow-x:auto}.lbl,.sidebox,.nav:not(.on){display:none}.brand small{display:none}.main{padding:16px}h1{font-size:21px}.banner{grid-template-columns:1fr;padding:16px}.banner h2{font-size:28px}}
+@media(max-width:420px){.g4{gap:10px}.val{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side"><div class="brand">airsense<small>AIR QUALITY MONITOR</small></div><div class="lbl">WORKSPACE</div>
+<div class="nav on">Ringkasan</div><div class="nav">Riwayat data</div><div class="nav">Perangkat</div><div class="nav">Notifikasi</div>
+<div class="sidebox"><b><span class="dot" id="sdot"></span><span id="sdev">Menghubungkan…</span></b>ESP32 • AQM-01<br>Koneksi melalui Blynk</div></aside>
+<main class="main">
+<div class="head"><div><div class="eyebrow">PEMANTAUAN LINGKUNGAN</div><h1>Kualitas udara ruangan</h1><p class="sub">Pantau udara di sekitar Anda, dalam satu tampilan.</p></div>
+<div class="pills"><span class="pill" id="mode">Mode demo</span><span class="pill" id="clock">--</span><button class="pill" id="skin" type="button">Ganti tampilan</button></div></div>
+
+<div class="banner" id="banner">
+<div><div class="badge">STATUS UDARA SAAT INI</div><h2 id="stText">AMAN</h2><p id="stDesc">-</p><p style="font-size:11px;margin-top:6px" id="upd">Menunggu data…</p></div>
+<div><div class="badge">KONDISI RUANGAN ANDA</div><div class="scale" id="scale"><i></i><i></i><i></i></div><div class="scl"><span>AMAN</span><span>WASPADA</span><span>TIDAK SEHAT</span></div><p style="font-size:11px;margin-top:10px">Berdasarkan konsentrasi debu</p></div>
+<div class="dust"><small>DEBU</small><b id="dBig">--</b><small>µg/m³ · Aman ≤ 15</small></div></div>
+
+<div class="grid g4">
+<div class="card"><label>Konsentrasi debu</label><div class="val"><span id="vDebu">--</span> <small>µg/m³</small></div><div class="note">Sensor debu · V2</div></div>
+<div class="card"><label>Suhu ruangan</label><div class="val"><span id="vSuhu">--</span> <small>°C</small></div><div class="note">DHT22 · V0 · tidak menentukan status</div></div>
+<div class="card"><label>Kelembapan</label><div class="val"><span id="vRH">--</span> <small>% RH</small></div><div class="note">DHT22 · V1 · tidak menentukan status</div></div>
+<div class="card"><label>Kipas (relay)</label><div class="val" id="vFan">--</div><div class="note">V3 · ON jika debu ≥ 26</div></div>
+</div>
+
+<div class="grid g2">
+<div class="card"><div class="ph"><div><h3>Tren kualitas udara</h3><div class="sub" id="chSub">Konsentrasi debu · sesi ini</div></div>
+<div class="tabs" id="tabs"><button class="on" data-k="debu" type="button">Debu</button><button data-k="suhu" type="button">Suhu</button><button data-k="rh" type="button">Kelembapan</button></div></div>
+<svg class="ch" id="chart" viewBox="0 0 500 180" preserveAspectRatio="none"></svg><div class="note" id="chNote"></div></div>
+<div class="card"><div class="ph"><h3>Perangkat aktif</h3><span class="pill" id="devPill" style="padding:4px 10px;font-size:11px">…</span></div>
+<div class="row"><span>Perangkat</span><b>Air Quality Monitor</b></div><div class="row"><span>Mikrokontroler</span><b>ESP32</b></div>
+<div class="row"><span>Sensor suhu &amp; RH</span><b>DHT22</b></div><div class="row"><span>Sensor debu</span><b>GP2Y1014AU0F</b></div>
+<div class="row"><span>Platform</span><b>Blynk IoT</b></div><div class="row"><span>Sinkronisasi terakhir</span><b id="sync">-</b></div><div class="row"><span>Buzzer</span><b id="bz">Diam</b></div></div>
+</div>
+
+<div class="grid g2">
+<div class="card"><div class="ph"><h3>Riwayat pembacaan</h3></div><div class="tw"><table><thead><tr><th>Waktu (WIB)</th><th>Debu (µg/m³)</th><th>Suhu (°C)</th><th>RH (%)</th><th>Kipas</th><th>Status udara</th></tr></thead><tbody id="hist"></tbody></table></div></div>
+<div class="card"><h3 style="margin-bottom:10px">Panduan status udara</h3>
+<div class="sc"><b>● AMAN</b> · Debu ≤ 15 µg/m³<small>Buzzer diam</small></div>
+<div class="sc w"><b>● WASPADA</b> · Debu &gt; 15 sampai 25<small>Buzzer 1× beep / 30 dtk</small></div>
+<div class="sc b"><b>● TIDAK SEHAT</b> · Debu &gt; 25<small>Buzzer 3× beep / 30 dtk</small></div>
+<div class="note">Kipas ON: debu ≥ 26 (3 pembacaan). OFF: debu &lt; 16 (5 pembacaan).</div></div>
+</div>
+<div class="foot"><span id="src">Data contoh untuk pratinjau.</span><span>Debu adalah estimasi sensor optik, bukan indeks AQI resmi.</span></div>
+</main></div>
+
+<script>
+/* ===== PENGATURAN — ubah bagian ini ===== */
+var CONFIG={
+  TOKEN:"ISI_TOKEN_BLYNK_ANDA",   // kosongkan/biarkan default = mode demo
+  SERVER:"blynk.cloud",           // jika gagal, coba host region di Blynk Console, mis. sgp1.blynk.cloud
+  INTERVAL:3000                   // ms antar pengambilan data
+};
+/* ======================================== */
+var T={aman:15,waspada:25},$=function(i){return document.getElementById(i)};
+var S={d:0,s:NaN,h:NaN,fan:false,online:false,ok:false,tab:'debu',ser:{debu:[],suhu:[],rh:[]},hist:[]};
+var DEMO=!CONFIG.TOKEN||CONFIG.TOKEN.indexOf("ISI_")===0;
+function pad(n){return String(n).padStart(2,'0')}
+function ts(d){return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
+function st(d){return d<=T.aman?'AMAN':d<=T.waspada?'WASPADA':'TIDAK SEHAT'}
+function cl(s){return s==='AMAN'?'':s==='WASPADA'?'WASPADA':'BAHAYA'}
+function num(v,n){return isNaN(v)?'--':v.toFixed(n).replace('.',',')}
+
+function render(){
+  var s=st(S.d),c=cl(s);
+  $('banner').className='banner '+c;$('stText').textContent=s;
+  $('stDesc').textContent=s==='AMAN'?'Udara baik. Aktivitas tetap nyaman.':s==='WASPADA'?'Debu mulai meningkat. Perhatikan sirkulasi udara.':'Debu tinggi. Hindari berlama-lama di ruangan.';
+  var k=$('scale').children,a=s==='AMAN'?0:s==='WASPADA'?1:2;for(var i=0;i<3;i++)k[i].className=i===a?'cur':'';
+  $('dBig').textContent=S.ok?S.d.toFixed(0):'--';$('vDebu').textContent=S.ok?S.d.toFixed(0):'--';
+  $('vSuhu').textContent=num(S.s,1);$('vRH').textContent=num(S.h,0);
+  $('vFan').textContent=S.ok?(S.fan?'MENYALA':'MATI'):'--';
+  $('bz').textContent=s==='AMAN'?'Diam':s==='WASPADA'?'1× beep / 30 dtk':'3× beep / 30 dtk';
+  var on=S.online;$('devPill').textContent=on?'• Online':'• Offline';$('devPill').className='pill '+(on?'ok':'bad');
+  $('sdot').className='dot'+(on?'':' off');$('sdev').textContent=on?'Perangkat terhubung':'Perangkat offline';
+  $('mode').textContent=DEMO?'Mode demo':'Data langsung';$('mode').className='pill'+(DEMO?'':' ok');
+  $('src').textContent=DEMO?'Data contoh · Bukan pembacaan perangkat langsung.':'Data langsung dari Blynk (V0–V4).';
+  drawChart();
+  $('hist').innerHTML=S.hist.map(function(r){return '<tr><td>'+r.t+'</td><td><b>'+r.d.toFixed(0)+'</b></td><td>'+num(r.s,1)+'</td><td>'+num(r.h,0)+'</td><td>'+(r.f?'ON':'OFF')+'</td><td><span class="tag '+cl(r.st)+'">'+r.st+'</span></td></tr>'}).join('');
+}
+var TAB={debu:{t:'Konsentrasi debu',u:'µg/m³',min:40,th:[[15,'var(--ok)','Aman 15'],[25,'var(--warn)','Waspada 25']]},suhu:{t:'Suhu ruangan',u:'°C',min:10,th:[]},rh:{t:'Kelembapan',u:'%',min:20,th:[]}};
+function drawChart(){
+  var cf=TAB[S.tab],s=S.ser[S.tab],W=500,H=180,L=30,B=18,h=H-B-8;
+  var lo=0,mx=Math.max.apply(null,s.concat([0]));
+  if(S.tab!=='debu'&&s.length){lo=Math.floor(Math.min.apply(null,s)-2);mx=Math.ceil(mx+2)}
+  var hi=S.tab==='debu'?Math.max(cf.min,Math.ceil(mx/10)*10):Math.max(lo+cf.min/2,mx);
+  function y(v){return 8+h-((v-lo)/(hi-lo))*h}
+  var g='',i;for(i=0;i<=4;i++){var v=lo+(hi-lo)/4*i;g+='<path d="M'+L+' '+y(v)+'H'+W+'" stroke="var(--line)"/><text x="2" y="'+(y(v)+3)+'">'+Math.round(v)+'</text>'}
+  cf.th.forEach(function(t){g+='<path d="M'+L+' '+y(t[0])+'H'+W+'" stroke="'+t[1]+'" stroke-dasharray="4 3"/><text x="'+(W-66)+'" y="'+(y(t[0])-3)+'">'+t[2]+'</text>'});
+  if(s.length>1){var p=s.map(function(v,k){return (L+k*(W-L)/59).toFixed(1)+' '+y(v).toFixed(1)});
+    g+='<path d="M'+p.join(' L')+' L'+(L+(s.length-1)*(W-L)/59).toFixed(1)+' '+y(lo)+' L'+L+' '+y(lo)+'Z" fill="var(--acc)" opacity=".1"/>';
+    g+='<path d="M'+p.join(' L')+'" fill="none" stroke="var(--acc)" stroke-width="2" vector-effect="non-scaling-stroke"/>'}
+  $('chart').innerHTML=g;$('chSub').textContent=cf.t+' · sesi ini ('+cf.u+')';
+  $('chNote').textContent=s.length?'Terakhir: '+num(s[s.length-1],S.tab==='debu'?0:1)+' '+cf.u+' · '+s.length+' pembacaan':'Menunggu data…';
+}
+function take(d,s,h,f,online){
+  S.d=d;S.s=s;S.h=h;S.fan=f;S.online=online;S.ok=true;var n=new Date();
+  $('upd').textContent='Diperbarui '+ts(n);$('sync').textContent=ts(n)+' WIB';
+  [['debu',d],['suhu',s],['rh',h]].forEach(function(x){if(!isNaN(x[1])){S.ser[x[0]].push(x[1]);if(S.ser[x[0]].length>60)S.ser[x[0]].shift()}});
+  S.hist.unshift({t:ts(n),d:d,s:s,h:h,f:f,st:st(d)});if(S.hist.length>6)S.hist.pop();render();
+}
+/* ===== Blynk ===== */
+function api(path){return fetch('https://'+CONFIG.SERVER+'/external/api/'+path).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})}
+function poll(){
+  var t=encodeURIComponent(CONFIG.TOKEN);
+  Promise.all([api('get?token='+t+'&v0&v1&v2&v3'),api('isHardwareConnected?token='+t)]).then(function(r){
+    var d=r[0],g=function(k){var v=d[k]!==undefined?d[k]:d[k.toUpperCase()];return v===undefined||v===null?NaN:parseFloat(v)};
+    take(g('v2')||0,g('v0'),g('v1'),g('v3')===1,r[1]===true);
+  }).catch(function(e){S.online=false;$('upd').textContent='Gagal mengambil data dari Blynk ('+e.message+')';render()});
+}
+/* ===== Demo ===== */
+var dm={t:10,s:27.5,h:55,f:0,fan:false};
+function demo(){dm.t=Math.max(2,Math.min(45,dm.t+(Math.random()-.48)*5));dm.f=.2*dm.t+.8*dm.f;
+  if(!dm.fan&&dm.f>=26)dm.fan=true;if(dm.fan&&dm.f<16)dm.fan=false;
+  dm.s+=(Math.random()-.5)*.3;dm.h+=(Math.random()-.5)*1.2;take(dm.f,dm.s,dm.h,dm.fan,true)}
+/* ===== UI ===== */
+$('tabs').addEventListener('click',function(e){var k=e.target.getAttribute('data-k');if(!k)return;S.tab=k;[].forEach.call(this.children,function(b){b.className=b.getAttribute('data-k')===k?'on':''});drawChart()});
+$('skin').addEventListener('click',function(){var b=document.body;b.classList.toggle('skin2');try{localStorage.setItem('skin',b.classList.contains('skin2')?'2':'1')}catch(e){}});
+try{if(localStorage.getItem('skin')==='2')document.body.classList.add('skin2')}catch(e){}
+setInterval(function(){$('clock').textContent=ts(new Date())+' WIB'},1000);
+if(DEMO){for(var i=0;i<25;i++)demo();setInterval(demo,1000)}else{poll();setInterval(poll,CONFIG.INTERVAL)}
+render();
+</script>
+</body>
+</html>
